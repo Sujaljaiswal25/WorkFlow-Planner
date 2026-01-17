@@ -12,12 +12,16 @@ import { startPanning, stopPanning } from "../store/uiSlice";
 import ActionNode from "./nodes/ActionNode";
 import BranchNode from "./nodes/BranchNode";
 import EndNode from "./nodes/EndNode";
+import Edge from "./Edge";
+import LineTypeSelector from "./LineTypeSelector";
 
 const Canvas = () => {
   const dispatch = useDispatch();
   const canvasRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [selectedEdgeId, setSelectedEdgeId] = useState(null);
+  const [lineType, setLineType] = useState("smart-bezier");
 
   // Get data from Redux
   const nodes = useSelector(selectNodesArray);
@@ -110,19 +114,14 @@ const Canvas = () => {
     }
   };
 
-  // Calculate connection line path
-  const getConnectionPath = (fromNode, toNode) => {
-    if (!fromNode || !toNode) return "";
+  // Handle edge selection
+  const handleEdgeSelect = (edgeId) => {
+    setSelectedEdgeId(edgeId);
+  };
 
-    const startX = fromNode.position.x * zoom + canvasOffset.x + 75; // Node width/2
-    const startY = fromNode.position.y * zoom + canvasOffset.y + 40; // Node height
-    const endX = toNode.position.x * zoom + canvasOffset.x + 75;
-    const endY = toNode.position.y * zoom + canvasOffset.y;
-
-    // Create curved path
-    const midY = (startY + endY) / 2;
-
-    return `M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`;
+  // Clear edge selection when clicking canvas
+  const handleCanvasClick = () => {
+    setSelectedEdgeId(null);
   };
 
   return (
@@ -135,6 +134,7 @@ const Canvas = () => {
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
+      onClick={handleCanvasClick}
     >
       {/* Grid Background */}
       <div
@@ -150,10 +150,14 @@ const Canvas = () => {
       />
 
       {/* SVG for connections */}
-      <svg className="absolute inset-0 pointer-events-none">
+      <svg
+        className="absolute inset-0 pointer-events-auto"
+        style={{ pointerEvents: "none" }}
+      >
         <defs>
+          {/* Default arrowhead */}
           <marker
-            id="arrowhead"
+            id="arrowhead-default"
             markerWidth="10"
             markerHeight="10"
             refX="9"
@@ -162,56 +166,44 @@ const Canvas = () => {
           >
             <polygon points="0 0, 10 3, 0 6" fill="#6b7280" />
           </marker>
+
+          {/* Selected arrowhead */}
+          <marker
+            id="arrowhead-selected"
+            markerWidth="10"
+            markerHeight="10"
+            refX="9"
+            refY="3"
+            orient="auto"
+          >
+            <polygon points="0 0, 10 3, 0 6" fill="#3b82f6" />
+          </marker>
         </defs>
-        {connections.map((connection) => {
-          const fromNode = nodes.find((n) => n.id === connection.fromNodeId);
-          const toNode = nodes.find((n) => n.id === connection.toNodeId);
 
-          if (!fromNode || !toNode) return null;
-
-          return (
-            <g key={connection.id}>
-              <path
-                d={getConnectionPath(fromNode, toNode)}
-                stroke="#6b7280"
-                strokeWidth="2"
-                fill="none"
-                markerEnd="url(#arrowhead)"
-              />
-              {connection.branchLabel && (
-                <text
-                  x={
-                    (fromNode.position.x * zoom +
-                      canvasOffset.x +
-                      toNode.position.x * zoom +
-                      canvasOffset.x) /
-                      2 +
-                    75
-                  }
-                  y={
-                    (fromNode.position.y * zoom +
-                      canvasOffset.y +
-                      toNode.position.y * zoom +
-                      canvasOffset.y) /
-                      2 +
-                    20
-                  }
-                  fill="#3b82f6"
-                  fontSize="12"
-                  fontWeight="600"
-                  textAnchor="middle"
-                  className="pointer-events-none"
-                >
-                  {connection.branchLabel}
-                </text>
-              )}
-            </g>
-          );
-        })}
+        {/* Render all connections using Edge component */}
+        <g style={{ pointerEvents: "auto" }}>
+          {connections.map((connection) => (
+            <Edge
+              key={connection.id}
+              connectionId={connection.id}
+              fromNodeId={connection.fromNodeId}
+              toNodeId={connection.toNodeId}
+              branchLabel={connection.branchLabel}
+              offset={canvasOffset}
+              zoom={zoom}
+              lineType={lineType}
+              onSelect={handleEdgeSelect}
+              isSelected={selectedEdgeId === connection.id}
+            />
+          ))}
+        </g>
       </svg>
 
       {/* Nodes */}
       <div className="relative w-full h-full">{nodes.map(renderNode)}</div>
+
+      {/* Line Type Selector */}
+      <LineTypeSelector currentType={lineType} onChange={setLineType} />
 
       {/* Canvas Info */}
       <div className="absolute bottom-4 left-4 bg-white px-3 py-2 rounded shadow-md text-xs text-gray-600 font-mono">

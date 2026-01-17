@@ -98,6 +98,36 @@ export const selectAreNodesConnected = (fromNodeId, toNodeId) =>
     )
   );
 
+// Memoized selector: Get connections with pre-calculated positions (for rendering optimization)
+export const selectConnectionsWithPositions = createSelector(
+  [selectConnections, selectNodes, selectCanvasOffset, selectZoom],
+  (connections, nodes, offset, zoom) => {
+    const nodeWidth = 144; // w-36
+    const nodeHeight = 80; // min-h-[80px]
+
+    return connections
+      .map((conn) => {
+        const fromNode = nodes[conn.fromNodeId];
+        const toNode = nodes[conn.toNodeId];
+
+        if (!fromNode || !toNode) return null;
+
+        // Pre-calculate positions for performance
+        return {
+          ...conn,
+          startX:
+            fromNode.position.x * zoom + offset.x + (nodeWidth / 2) * zoom,
+          startY: fromNode.position.y * zoom + offset.y + nodeHeight * zoom,
+          endX: toNode.position.x * zoom + offset.x + (nodeWidth / 2) * zoom,
+          endY: toNode.position.y * zoom + offset.y,
+          fromNode,
+          toNode,
+        };
+      })
+      .filter(Boolean);
+  }
+);
+
 // Memoized selector: Get all root nodes (nodes with no parents)
 export const selectRootNodes = createSelector(
   [selectNodesArray, selectConnections],
