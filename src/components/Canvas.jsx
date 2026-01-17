@@ -6,6 +6,7 @@ import {
   selectCanvasOffset,
   selectZoom,
   selectIsPanning,
+  selectIsDragging,
 } from "../store/selectors";
 import { updateCanvasOffset, updateZoom } from "../store/workflowSlice";
 import { startPanning, stopPanning } from "../store/uiSlice";
@@ -29,6 +30,7 @@ const Canvas = () => {
   const canvasOffset = useSelector(selectCanvasOffset);
   const zoom = useSelector(selectZoom);
   const isPanning = useSelector(selectIsPanning);
+  const isNodeDragging = useSelector(selectIsDragging);
 
   // Handle mouse down on canvas (start panning)
   const handleMouseDown = (e) => {
@@ -128,7 +130,11 @@ const Canvas = () => {
     <div
       ref={canvasRef}
       className={`relative w-full h-screen overflow-hidden bg-gray-50 ${
-        isDragging ? "cursor-grabbing" : "cursor-default"
+        isDragging
+          ? "cursor-grabbing"
+          : isNodeDragging
+          ? "cursor-grabbing"
+          : "cursor-default"
       }`}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}

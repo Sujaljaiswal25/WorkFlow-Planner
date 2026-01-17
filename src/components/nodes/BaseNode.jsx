@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectNodeById, selectSelectedNodeId } from "../../store/selectors";
 import {
@@ -33,24 +33,55 @@ const BaseNode = ({
   const selectedNodeId = useSelector(selectSelectedNodeId);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [localPosition, setLocalPosition] = useState(null); // Optimistic UI state
   const [isEditing, setIsEditing] = useState(false);
   const [editLabel, setEditLabel] = useState("");
   const inputRef = useRef(null);
+  const throttleTimerRef = useRef(null);
+  const lastUpdateTimeRef = useRef(0);
 
   if (!node) return null;
 
   const isSelected = selectedNodeId === nodeId;
   const isStartNode = nodeId === "start-node";
 
+  // Use local position during drag, otherwise use Redux position
+  const displayPosition = localPosition || node.position;
+
   // Calculate absolute position with zoom and pan
   const style = {
     position: "absolute",
-    left: `${node.position.x * zoom + offset.x}px`,
-    top: `${node.position.y * zoom + offset.y}px`,
+    left: `${displayPosition.x * zoom + offset.x}px`,
+    top: `${displayPosition.y * zoom + offset.y}px`,
     transform: `scale(${zoom})`,
     transformOrigin: "top left",
     cursor: isDragging ? "grabbing" : "grab",
+    transition: isDragging ? "none" : "left 0.1s ease-out, top 0.1s ease-out",
+    zIndex: isDragging ? 1000 : isSelected ? 100 : 10,
   };
+
+  // Throttled Redux update (every 100ms during drag)
+  const throttledUpdatePosition = useCallback(
+    (position) => {
+      const now = Date.now();
+      const timeSinceLastUpdate = now - lastUpdateTimeRef.current;
+
+      if (timeSinceLastUpdate >= 100) {
+        dispatch(updateNodePosition({ nodeId, position }));
+        lastUpdateTimeRef.current = now;
+      } else {
+        // Schedule update for later
+        if (throttleTimerRef.current) {
+          clearTimeout(throttleTimerRef.current);
+        }
+        throttleTimerRef.current = setTimeout(() => {
+          dispatch(updateNodePosition({ nodeId, position }));
+          lastUpdateTimeRef.current = Date.now();
+        }, 100 - timeSinceLastUpdate);
+      }
+    },
+    [dispatch, nodeId]
+  );
 
   // Handle drag start
   const handleMouseDown = (e) => {
@@ -69,27 +100,59 @@ const BaseNode = ({
   };
 
   // Handle drag move
-  const handleMouseMove = (e) => {
-    if (isDragging) {
-      const deltaX = (e.clientX - dragStart.x) / zoom;
-      const deltaY = (e.clientY - dragStart.y) / zoom;
+  const handleMouseMove = useCallback(
+    (e) => {
+      if (isDragging && dragStart) {
+        const deltaX = (e.clientX - dragStart.x) / zoom;
+        const deltaY = (e.clientY - dragStart.y) / zoom;
 
-      const newPosition = {
-        x: Math.max(0, dragStart.nodeX + deltaX),
-        y: Math.max(0, dragStart.nodeY + deltaY),
-      };
+        const newPosition = {
+          x: Math.max(0, dragStart.nodeX + deltaX),
+          y: Math.max(0, dragStart.nodeY + deltaY),
+        };
 
-      dispatch(updateNodePosition({ nodeId, position: newPosition }));
-    }
-  };
+        // Update local state immediately for smooth UI
+        setLocalPosition(newPosition);
+
+        // Throttle Redux updates
+        throttledUpdatePosition(newPosition);
+      }
+    },
+    [isDragging, dragStart, zoom, throttledUpdatePosition]
+  );
 
   // Handle drag end
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     if (isDragging) {
+      // Final Redux update with exact position
+      if (localPosition) {
+        dispatch(updateNodePosition({ nodeId, position: localPosition }));
+      }
+
+      // Clear throttle timer
+      if (throttleTimerRef.current) {
+        clearTimeout(throttleTimerRef.current);
+      }
+
+      // Reset drag state
       setIsDragging(false);
+      setLocalPosition(null);
       dispatch(stopDragging());
     }
-  };
+  }, [isDragging, localPosition, dispatch, nodeId]);
+
+  // Attach global mouse move and mouse up listeners during drag
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+
+      return () => {
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   // Handle double click to edit
   const handleDoubleClick = (e) => {
@@ -142,13 +205,11 @@ const BaseNode = ({
     <div
       style={style}
       onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
       onDoubleClick={handleDoubleClick}
       className={`
         w-36 min-h-[80px] rounded-lg shadow-lg
         ${isSelected ? "ring-4 ring-blue-400" : ""}
+        ${isDragging ? "shadow-2xl opacity-90" : ""}
         ${className}
       `}
     >
