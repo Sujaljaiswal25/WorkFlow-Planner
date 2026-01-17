@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import workflowReducer from "./workflowSlice";
+import uiReducer from "./uiSlice";
 import { localStorageMiddleware, loadState } from "./localStorageMiddleware";
 
 // Load persisted state from localStorage
@@ -9,6 +10,7 @@ const persistedState = loadState();
 const store = configureStore({
   reducer: {
     workflow: workflowReducer,
+    ui: uiReducer,
   },
 
   // Preload state from localStorage if available
