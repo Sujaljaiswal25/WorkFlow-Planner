@@ -1,11 +1,11 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { selectNodeById } from '../../store/selectors';
-import BaseNode from './BaseNode';
+import React from "react";
+import { useSelector } from "react-redux";
+import { selectNodeById } from "../../store/selectors";
+import BaseNode from "./BaseNode";
 
 /**
  * BranchNode Component
- * 
+ *
  * Represents a decision/branching point in the workflow
  * - Has one input connection point
  * - Has multiple output connection points (for different branches)
@@ -13,15 +13,16 @@ import BaseNode from './BaseNode';
  * - Diamond-shaped visual distinction
  */
 const BranchNode = ({ nodeId, offset, zoom }) => {
-  const node = useSelector(state => selectNodeById(nodeId)(state));
+  const node = useSelector((state) => selectNodeById(nodeId)(state));
 
   if (!node) return null;
 
   // Branch nodes can have multiple outputs
-  const outputPoints = node.connections?.map((connId, index) => ({
-    id: connId,
-    label: node.branchLabels?.[connId] || `Option ${index + 1}`
-  })) || [];
+  const outputPoints =
+    node.connections?.map((connId, index) => ({
+      id: connId,
+      label: node.branchLabels?.[connId] || `Option ${index + 1}`,
+    })) || [];
 
   return (
     <BaseNode
@@ -33,7 +34,10 @@ const BranchNode = ({ nodeId, offset, zoom }) => {
       connectionPoints={{
         input: true,
         output: false,
-        outputs: outputPoints.length > 0 ? outputPoints : [{ label: 'Yes' }, { label: 'No' }]
+        outputs:
+          outputPoints.length > 0
+            ? outputPoints
+            : [{ label: "Yes" }, { label: "No" }],
       }}
     >
       <div className="flex flex-col items-center justify-center w-full">

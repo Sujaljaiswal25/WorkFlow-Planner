@@ -21,14 +21,12 @@ const App = () => {
       {/* Header */}
       <header className="bg-white shadow-md px-6 py-4 flex items-center justify-between z-10">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            Workflow Builder
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-800">Workflow Builder</h1>
           <p className="text-sm text-gray-600">
             Phase 4: Canvas & Node Components
           </p>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <button
             onClick={() => setShowDebug(!showDebug)}
@@ -36,7 +34,7 @@ const App = () => {
           >
             {showDebug ? "Hide Debug" : "Show Debug"}
           </button>
-          
+
           <div className="text-xs text-gray-500 space-y-1">
             <div>✅ Canvas with pan & zoom</div>
             <div>✅ Node components (Action, Branch, End)</div>

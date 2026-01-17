@@ -1,7 +1,7 @@
-import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { addNode, resetView } from '../store/workflowSlice';
-import { selectNodesArray, selectWorkflowStats } from '../store/selectors';
+import React from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addNode, resetView } from "../store/workflowSlice";
+import { selectNodesArray, selectWorkflowStats } from "../store/selectors";
 
 const Toolbar = () => {
   const dispatch = useDispatch();
@@ -12,19 +12,26 @@ const Toolbar = () => {
     // Find the last node for positioning
     const lastNode = nodes[nodes.length - 1];
     const baseY = lastNode ? lastNode.position.y + 120 : 150;
-    
+
     // Get the start node as default parent
-    const startNode = nodes.find(n => n.id === 'start-node');
-    
-    dispatch(addNode({
-      type,
-      label: type === 'action' ? 'New Action' : type === 'branch' ? 'Decision?' : 'End',
-      position: { 
-        x: 400 + Math.random() * 100,
-        y: baseY + Math.random() * 50
-      },
-      parentNodeId: startNode?.id
-    }));
+    const startNode = nodes.find((n) => n.id === "start-node");
+
+    dispatch(
+      addNode({
+        type,
+        label:
+          type === "action"
+            ? "New Action"
+            : type === "branch"
+            ? "Decision?"
+            : "End",
+        position: {
+          x: 400 + Math.random() * 100,
+          y: baseY + Math.random() * 50,
+        },
+        parentNodeId: startNode?.id,
+      })
+    );
   };
 
   const handleResetView = () => {
@@ -35,9 +42,9 @@ const Toolbar = () => {
     <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-xl border border-gray-200 flex items-center gap-4 px-6 py-3 z-10">
       <div className="flex items-center gap-2 border-r border-gray-300 pr-4">
         <span className="text-sm font-semibold text-gray-700">Add Node:</span>
-        
+
         <button
-          onClick={() => handleAddNode('action')}
+          onClick={() => handleAddNode("action")}
           className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm font-medium transition-colors flex items-center gap-1"
           title="Add Action Node"
         >
@@ -46,7 +53,7 @@ const Toolbar = () => {
         </button>
 
         <button
-          onClick={() => handleAddNode('branch')}
+          onClick={() => handleAddNode("branch")}
           className="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm font-medium transition-colors flex items-center gap-1"
           title="Add Branch Node"
         >
@@ -55,7 +62,7 @@ const Toolbar = () => {
         </button>
 
         <button
-          onClick={() => handleAddNode('end')}
+          onClick={() => handleAddNode("end")}
           className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded text-sm font-medium transition-colors flex items-center gap-1"
           title="Add End Node"
         >

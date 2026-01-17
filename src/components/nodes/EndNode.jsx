@@ -1,18 +1,18 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { selectNodeById } from '../../store/selectors';
-import BaseNode from './BaseNode';
+import React from "react";
+import { useSelector } from "react-redux";
+import { selectNodeById } from "../../store/selectors";
+import BaseNode from "./BaseNode";
 
 /**
  * EndNode Component
- * 
+ *
  * Represents the terminal/final step in the workflow
  * - Has one input connection point
  * - Has NO output connection points (terminal node)
  * - Red color scheme to indicate endpoint
  */
 const EndNode = ({ nodeId, offset, zoom }) => {
-  const node = useSelector(state => selectNodeById(nodeId)(state));
+  const node = useSelector((state) => selectNodeById(nodeId)(state));
 
   if (!node) return null;
 
@@ -24,7 +24,7 @@ const EndNode = ({ nodeId, offset, zoom }) => {
       color="red"
       connectionPoints={{
         input: true,
-        output: false // End nodes have no output
+        output: false, // End nodes have no output
       }}
     >
       <div className="flex flex-col items-center justify-center w-full">

@@ -1,18 +1,18 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { selectNodeById } from '../../store/selectors';
-import BaseNode from './BaseNode';
+import React from "react";
+import { useSelector } from "react-redux";
+import { selectNodeById } from "../../store/selectors";
+import BaseNode from "./BaseNode";
 
 /**
  * ActionNode Component
- * 
+ *
  * Represents a single action/step in the workflow
  * - Has one input connection point (except start node)
  * - Has one output connection point
  * - Blue color scheme
  */
 const ActionNode = ({ nodeId, offset, zoom }) => {
-  const node = useSelector(state => selectNodeById(nodeId)(state));
+  const node = useSelector((state) => selectNodeById(nodeId)(state));
 
   if (!node) return null;
 
@@ -24,7 +24,7 @@ const ActionNode = ({ nodeId, offset, zoom }) => {
       color="blue"
       connectionPoints={{
         input: true,
-        output: true
+        output: true,
       }}
     >
       <div className="flex flex-col items-center justify-center w-full">

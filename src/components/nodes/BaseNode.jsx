@@ -1,17 +1,17 @@
-import React, { useRef, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { selectNodeById, selectSelectedNodeId } from '../../store/selectors';
+import React, { useRef, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { selectNodeById, selectSelectedNodeId } from "../../store/selectors";
 import {
   updateNodePosition,
   selectNode,
   deleteNode,
-  updateNodeLabel
-} from '../../store/workflowSlice';
-import { startDragging, stopDragging } from '../../store/uiSlice';
+  updateNodeLabel,
+} from "../../store/workflowSlice";
+import { startDragging, stopDragging } from "../../store/uiSlice";
 
 /**
  * BaseNode - Reusable wrapper component for all node types
- * 
+ *
  * Features:
  * - Connects to Redux for node data
  * - Handles dragging and positioning
@@ -19,50 +19,50 @@ import { startDragging, stopDragging } from '../../store/uiSlice';
  * - Manages selection state
  * - Supports inline editing
  */
-const BaseNode = ({ 
-  nodeId, 
-  offset, 
-  zoom, 
+const BaseNode = ({
+  nodeId,
+  offset,
+  zoom,
   children,
   connectionPoints = { input: true, output: true },
-  className = '',
-  color = 'blue'
+  className = "",
+  color = "blue",
 }) => {
   const dispatch = useDispatch();
-  const node = useSelector(state => selectNodeById(nodeId)(state));
+  const node = useSelector((state) => selectNodeById(nodeId)(state));
   const selectedNodeId = useSelector(selectSelectedNodeId);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isEditing, setIsEditing] = useState(false);
-  const [editLabel, setEditLabel] = useState('');
+  const [editLabel, setEditLabel] = useState("");
   const inputRef = useRef(null);
 
   if (!node) return null;
 
   const isSelected = selectedNodeId === nodeId;
-  const isStartNode = nodeId === 'start-node';
+  const isStartNode = nodeId === "start-node";
 
   // Calculate absolute position with zoom and pan
   const style = {
-    position: 'absolute',
+    position: "absolute",
     left: `${node.position.x * zoom + offset.x}px`,
     top: `${node.position.y * zoom + offset.y}px`,
     transform: `scale(${zoom})`,
-    transformOrigin: 'top left',
-    cursor: isDragging ? 'grabbing' : 'grab'
+    transformOrigin: "top left",
+    cursor: isDragging ? "grabbing" : "grab",
   };
 
   // Handle drag start
   const handleMouseDown = (e) => {
     if (isEditing) return;
-    
+
     e.stopPropagation();
     setIsDragging(true);
     setDragStart({
       x: e.clientX,
       y: e.clientY,
       nodeX: node.position.x,
-      nodeY: node.position.y
+      nodeY: node.position.y,
     });
     dispatch(startDragging(nodeId));
     dispatch(selectNode(nodeId));
@@ -73,12 +73,12 @@ const BaseNode = ({
     if (isDragging) {
       const deltaX = (e.clientX - dragStart.x) / zoom;
       const deltaY = (e.clientY - dragStart.y) / zoom;
-      
+
       const newPosition = {
         x: Math.max(0, dragStart.nodeX + deltaX),
-        y: Math.max(0, dragStart.nodeY + deltaY)
+        y: Math.max(0, dragStart.nodeY + deltaY),
       };
-      
+
       dispatch(updateNodePosition({ nodeId, position: newPosition }));
     }
   };
@@ -111,10 +111,10 @@ const BaseNode = ({
 
   // Handle edit cancel
   const handleEditCancel = (e) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       setIsEditing(false);
       setEditLabel(node.label);
-    } else if (e.key === 'Enter' && !e.shiftKey) {
+    } else if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleEditSave();
     }
@@ -130,12 +130,12 @@ const BaseNode = ({
 
   // Color variants
   const colorClasses = {
-    blue: 'bg-blue-500 border-blue-600',
-    green: 'bg-green-500 border-green-600',
-    yellow: 'bg-yellow-500 border-yellow-600',
-    red: 'bg-red-500 border-red-600',
-    purple: 'bg-purple-500 border-purple-600',
-    gray: 'bg-gray-500 border-gray-600'
+    blue: "bg-blue-500 border-blue-600",
+    green: "bg-green-500 border-green-600",
+    yellow: "bg-yellow-500 border-yellow-600",
+    red: "bg-red-500 border-red-600",
+    purple: "bg-purple-500 border-purple-600",
+    gray: "bg-gray-500 border-gray-600",
   };
 
   return (
@@ -148,21 +148,23 @@ const BaseNode = ({
       onDoubleClick={handleDoubleClick}
       className={`
         w-36 min-h-[80px] rounded-lg shadow-lg
-        ${isSelected ? 'ring-4 ring-blue-400' : ''}
+        ${isSelected ? "ring-4 ring-blue-400" : ""}
         ${className}
       `}
     >
       {/* Input Connection Point */}
-      {connectionPoints.input && nodeId !== 'start-node' && (
+      {connectionPoints.input && nodeId !== "start-node" && (
         <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-400 rounded-full border-2 border-white" />
       )}
 
       {/* Node Content */}
-      <div className={`
+      <div
+        className={`
         w-full h-full rounded-lg border-2 
         ${colorClasses[color] || colorClasses.blue}
         text-white p-3 flex flex-col items-center justify-center
-      `}>
+      `}
+      >
         {isEditing ? (
           <input
             ref={inputRef}

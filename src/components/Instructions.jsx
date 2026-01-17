@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 /**
  * Instructions Panel
@@ -8,7 +8,7 @@ const Instructions = () => {
   return (
     <div className="absolute bottom-20 right-4 bg-white rounded-lg shadow-lg border border-gray-200 p-4 max-w-sm z-10">
       <h3 className="text-sm font-bold text-gray-800 mb-2">🎯 Quick Guide</h3>
-      
+
       <div className="text-xs text-gray-600 space-y-2">
         <div>
           <strong>Pan Canvas:</strong> Click and drag on empty space
