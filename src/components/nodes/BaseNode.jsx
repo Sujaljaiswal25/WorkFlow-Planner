@@ -158,6 +158,23 @@ const BaseNode = ({
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
+  // Handle keyboard delete for selected nodes
+  useEffect(() => {
+    if (!isSelected || isStartNode || isEditing) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Delete" || e.key === "Backspace") {
+        e.preventDefault();
+        if (window.confirm(`Delete "${node.label}"?`)) {
+          dispatch(deleteNode(nodeId));
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isSelected, isStartNode, isEditing, nodeId, node.label, dispatch]);
+
   // Handle double click to edit
   const handleDoubleClick = (e) => {
     e.stopPropagation();
@@ -190,7 +207,26 @@ const BaseNode = ({
   // Handle delete
   const handleDelete = (e) => {
     e.stopPropagation();
-    if (!isStartNode && window.confirm(`Delete "${node.label}"?`)) {
+
+    if (isStartNode) return;
+
+    // Get connection info for confirmation message
+    const childConnections = node.connections || [];
+    const parentConnections = Object.values(
+      window.store.getState().workflow.nodes,
+    ).filter((n) => n.connections.includes(nodeId));
+
+    let confirmMessage = `Delete "${node.label}"?`;
+
+    if (childConnections.length > 0 && parentConnections.length > 0) {
+      confirmMessage += `\n\nThis will reconnect ${parentConnections.length} parent(s) to ${childConnections.length} child(ren).`;
+    } else if (childConnections.length > 0) {
+      confirmMessage += `\n\n${childConnections.length} child node(s) will be disconnected.`;
+    } else if (parentConnections.length > 0) {
+      confirmMessage += `\n\nThis will remove the connection from ${parentConnections.length} parent(s).`;
+    }
+
+    if (window.confirm(confirmMessage)) {
       dispatch(deleteNode(nodeId));
     }
   };
@@ -230,10 +266,11 @@ const BaseNode = ({
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
       className={`
-        w-36 min-h-[80px] rounded-lg shadow-lg
+        w-36 min-h-[80px] rounded-lg shadow-lg group
         ${isSelected ? "ring-4 ring-blue-400" : ""}
         ${isDragging ? "shadow-2xl opacity-90" : ""}
         ${className}
+        transition-all duration-200
       `}
     >
       {/* Input Connection Point */}
@@ -276,10 +313,11 @@ const BaseNode = ({
         </div>
 
         {/* Delete Button */}
-        {!isStartNode && isSelected && (
+        {!isStartNode && (
           <button
             onClick={handleDelete}
-            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full hover:bg-red-600 flex items-center justify-center text-xs font-bold shadow"
+            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full hover:bg-red-600 flex items-center justify-center text-xs font-bold shadow-lg transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
+            title="Delete node (Del)"
           >
             ×
           </button>

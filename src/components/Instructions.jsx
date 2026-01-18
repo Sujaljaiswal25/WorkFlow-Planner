@@ -23,7 +23,10 @@ const Instructions = () => {
           <strong>Edit Node:</strong> Double-click a node
         </div>
         <div>
-          <strong>Delete Node:</strong> Select node, click × button
+          <strong>Add Node:</strong> Click green connection point ⚫
+        </div>
+        <div>
+          <strong>Delete Node:</strong> Hover node and click × (or press Del)
         </div>
         <div className="pt-2 border-t border-gray-200 mt-2">
           <strong>Node Types:</strong>

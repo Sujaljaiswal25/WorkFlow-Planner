@@ -36,4 +36,9 @@ const store = configureStore({
   devTools: process.env.NODE_ENV !== "production",
 });
 
+// Expose store globally for debugging and utilities
+if (typeof window !== "undefined") {
+  window.store = store;
+}
+
 export default store;

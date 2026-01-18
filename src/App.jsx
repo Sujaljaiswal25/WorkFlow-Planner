@@ -6,6 +6,7 @@ import SaveIndicator from "./components/SaveIndicator";
 import SaveControls from "./components/SaveControls";
 import WorkflowDebug from "./components/WorkflowDebug";
 import "./utils/testUtils"; // Load test utilities
+import "./utils/deleteTestScenarios"; // Load delete test scenarios
 
 const App = () => {
   const [showDebug, setShowDebug] = useState(false);
@@ -23,11 +24,23 @@ const App = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Workflow Builder</h1>
           <p className="text-sm text-gray-600">
-            Phase 4: Canvas & Node Components
+            Phase 8: Node Deletion & Management
           </p>
         </div>
 
         <div className="flex items-center gap-4">
+          <button
+            onClick={() => {
+              if (window.deleteTests) {
+                window.deleteTests.runAllDeleteTests();
+                alert("Check browser console for test results!");
+              }
+            }}
+            className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium transition-colors"
+          >
+            Run Delete Tests
+          </button>
+
           <button
             onClick={() => setShowDebug(!showDebug)}
             className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors"
@@ -36,9 +49,9 @@ const App = () => {
           </button>
 
           <div className="text-xs text-gray-500 space-y-1">
-            <div>✅ Canvas with pan & zoom</div>
-            <div>✅ Node components (Action, Branch, End)</div>
-            <div>✅ Redux integration</div>
+            <div>✅ Node dragging with optimistic UI</div>
+            <div>✅ Add nodes via connection points</div>
+            <div>✅ Delete nodes (hover/Del key)</div>
           </div>
         </div>
       </header>
