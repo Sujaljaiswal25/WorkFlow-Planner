@@ -187,9 +187,20 @@ const BaseNode = ({
 
   // Handle edit save
   const handleEditSave = () => {
-    if (editLabel.trim() && editLabel !== node.label) {
-      dispatch(updateNodeLabel({ nodeId, label: editLabel.trim() }));
+    const trimmedLabel = editLabel.trim();
+
+    // Validate: require non-empty label
+    if (!trimmedLabel) {
+      alert("Node label cannot be empty!");
+      setEditLabel(node.label);
+      return;
     }
+
+    // Only update if changed
+    if (trimmedLabel !== node.label) {
+      dispatch(updateNodeLabel({ nodeId, label: trimmedLabel }));
+    }
+
     setIsEditing(false);
   };
 
@@ -269,6 +280,7 @@ const BaseNode = ({
         w-36 min-h-[80px] rounded-lg shadow-lg group
         ${isSelected ? "ring-4 ring-blue-400" : ""}
         ${isDragging ? "shadow-2xl opacity-90" : ""}
+        ${isEditing ? "ring-4 ring-yellow-400 shadow-2xl" : ""}
         ${className}
         transition-all duration-200
       `}
@@ -284,19 +296,29 @@ const BaseNode = ({
         w-full h-full rounded-lg border-2 
         ${colorClasses[color] || colorClasses.blue}
         text-white p-3 flex flex-col items-center justify-center
+        ${!isStartNode && !isEditing ? "cursor-text" : ""}
       `}
+        title={!isStartNode && !isEditing ? "Double-click to edit" : ""}
       >
         {isEditing ? (
-          <input
-            ref={inputRef}
-            type="text"
-            value={editLabel}
-            onChange={(e) => setEditLabel(e.target.value)}
-            onBlur={handleEditSave}
-            onKeyDown={handleEditCancel}
-            className="w-full px-2 py-1 text-sm text-gray-900 rounded border-2 border-white"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div className="w-full space-y-1">
+            <input
+              ref={inputRef}
+              type="text"
+              value={editLabel}
+              onChange={(e) => setEditLabel(e.target.value)}
+              onBlur={handleEditSave}
+              onKeyDown={handleEditCancel}
+              maxLength={50}
+              className="w-full px-2 py-1 text-sm text-gray-900 rounded border-2 border-blue-400 focus:border-blue-600 focus:outline-none shadow-inner"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              placeholder="Enter node label..."
+            />
+            <div className="text-xs text-blue-200 text-center">
+              {editLabel.length}/50 • Enter to save • Esc to cancel
+            </div>
+          </div>
         ) : (
           <>
             {children || (

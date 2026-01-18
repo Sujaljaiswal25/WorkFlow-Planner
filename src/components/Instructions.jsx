@@ -20,7 +20,10 @@ const Instructions = () => {
           <strong>Move Node:</strong> Click and drag a node
         </div>
         <div>
-          <strong>Edit Node:</strong> Double-click a node
+          <strong>Edit Node:</strong> Double-click node, type, press Enter
+        </div>
+        <div className="ml-4 text-xs text-gray-500">
+          • Esc to cancel • Max 50 characters
         </div>
         <div>
           <strong>Add Node:</strong> Click green connection point ⚫
