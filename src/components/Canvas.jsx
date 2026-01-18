@@ -9,12 +9,13 @@ import {
   selectIsDragging,
 } from "../store/selectors";
 import { updateCanvasOffset, updateZoom } from "../store/workflowSlice";
-import { startPanning, stopPanning } from "../store/uiSlice";
+import { startPanning, stopPanning, closeAddNodeMenu } from "../store/uiSlice";
 import ActionNode from "./nodes/ActionNode";
 import BranchNode from "./nodes/BranchNode";
 import EndNode from "./nodes/EndNode";
 import Edge from "./Edge";
 import LineTypeSelector from "./LineTypeSelector";
+import AddNodeMenu from "./AddNodeMenu";
 
 const Canvas = () => {
   const dispatch = useDispatch();
@@ -31,6 +32,13 @@ const Canvas = () => {
   const zoom = useSelector(selectZoom);
   const isPanning = useSelector(selectIsPanning);
   const isNodeDragging = useSelector(selectIsDragging);
+  const isAddNodeMenuOpen = useSelector((state) => state.ui.isAddNodeMenuOpen);
+  const addNodeMenuPosition = useSelector(
+    (state) => state.ui.addNodeMenuPosition,
+  );
+  const addNodeMenuParentId = useSelector(
+    (state) => state.ui.addNodeMenuParentId,
+  );
 
   // Handle mouse down on canvas (start panning)
   const handleMouseDown = (e) => {
@@ -124,6 +132,7 @@ const Canvas = () => {
   // Clear edge selection when clicking canvas
   const handleCanvasClick = () => {
     setSelectedEdgeId(null);
+    dispatch(closeAddNodeMenu());
   };
 
   return (
@@ -133,8 +142,8 @@ const Canvas = () => {
         isDragging
           ? "cursor-grabbing"
           : isNodeDragging
-          ? "cursor-grabbing"
-          : "cursor-default"
+            ? "cursor-grabbing"
+            : "cursor-default"
       }`}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -220,6 +229,15 @@ const Canvas = () => {
         <div>Nodes: {nodes.length}</div>
         <div className="text-gray-400 mt-1">Ctrl+Scroll to zoom</div>
       </div>
+
+      {/* Add Node Menu */}
+      <AddNodeMenu
+        isOpen={isAddNodeMenuOpen}
+        position={addNodeMenuPosition}
+        parentNodeId={addNodeMenuParentId}
+        zoom={zoom}
+        canvasOffset={canvasOffset}
+      />
     </div>
   );
 };

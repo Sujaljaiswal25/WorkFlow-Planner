@@ -7,7 +7,11 @@ import {
   deleteNode,
   updateNodeLabel,
 } from "../../store/workflowSlice";
-import { startDragging, stopDragging } from "../../store/uiSlice";
+import {
+  startDragging,
+  stopDragging,
+  openAddNodeMenu,
+} from "../../store/uiSlice";
 
 /**
  * BaseNode - Reusable wrapper component for all node types
@@ -80,7 +84,7 @@ const BaseNode = ({
         }, 100 - timeSinceLastUpdate);
       }
     },
-    [dispatch, nodeId]
+    [dispatch, nodeId],
   );
 
   // Handle drag start
@@ -118,7 +122,7 @@ const BaseNode = ({
         throttledUpdatePosition(newPosition);
       }
     },
-    [isDragging, dragStart, zoom, throttledUpdatePosition]
+    [isDragging, dragStart, zoom, throttledUpdatePosition],
   );
 
   // Handle drag end
@@ -191,6 +195,25 @@ const BaseNode = ({
     }
   };
 
+  // Handle connection point click to add node
+  const handleAddNodeClick = (e) => {
+    e.stopPropagation();
+
+    // Calculate the screen position of the connection point
+    const rect = e.currentTarget.getBoundingClientRect();
+    const position = {
+      x: rect.left + rect.width / 2,
+      y: rect.bottom + 10,
+    };
+
+    dispatch(
+      openAddNodeMenu({
+        position,
+        parentNodeId: nodeId,
+      }),
+    );
+  };
+
   // Color variants
   const colorClasses = {
     blue: "bg-blue-500 border-blue-600",
@@ -215,7 +238,7 @@ const BaseNode = ({
     >
       {/* Input Connection Point */}
       {connectionPoints.input && nodeId !== "start-node" && (
-        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-400 rounded-full border-2 border-white" />
+        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-5 h-5 bg-blue-400 rounded-full border-2 border-white shadow-md" />
       )}
 
       {/* Node Content */}
@@ -264,8 +287,16 @@ const BaseNode = ({
       </div>
 
       {/* Output Connection Point */}
-      {connectionPoints.output && (
-        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-gray-400 rounded-full border-2 border-white" />
+      {connectionPoints.output && node.type !== "end" && (
+        <div
+          onClick={handleAddNodeClick}
+          className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-5 h-5 bg-green-500 rounded-full border-2 border-white cursor-pointer hover:bg-blue-500 hover:scale-125 transition-all shadow-md group"
+          title="Click to add node"
+        >
+          <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            Add Node
+          </div>
+        </div>
       )}
 
       {/* Multiple Output Points for Branch Nodes */}
@@ -274,9 +305,14 @@ const BaseNode = ({
           {connectionPoints.outputs.map((output, index) => (
             <div
               key={index}
-              className="w-4 h-4 bg-gray-400 rounded-full border-2 border-white"
-              title={output.label}
-            />
+              onClick={handleAddNodeClick}
+              className="w-5 h-5 bg-green-500 rounded-full border-2 border-white cursor-pointer hover:bg-blue-500 hover:scale-125 transition-all shadow-md group relative"
+              title={`Click to add node (${output.label})`}
+            >
+              <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                Add ({output.label})
+              </div>
+            </div>
           ))}
         </div>
       )}
