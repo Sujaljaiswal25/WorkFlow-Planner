@@ -16,6 +16,7 @@ import EndNode from "./nodes/EndNode";
 import Edge from "./Edge";
 import LineTypeSelector from "./LineTypeSelector";
 import AddNodeMenu from "./AddNodeMenu";
+import ZoomControls from "./ZoomControls";
 
 const Canvas = () => {
   const dispatch = useDispatch();
@@ -151,15 +152,17 @@ const Canvas = () => {
       onMouseLeave={handleMouseUp}
       onClick={handleCanvasClick}
     >
-      {/* Grid Background */}
+      {/* Enhanced Grid Background */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `
-            linear-gradient(to right, #e5e7eb 1px, transparent 1px),
-            linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)
+            linear-gradient(to right, rgba(203, 213, 225, 0.3) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(203, 213, 225, 0.3) 1px, transparent 1px),
+            linear-gradient(to right, rgba(148, 163, 184, 0.15) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(148, 163, 184, 0.15) 1px, transparent 1px)
           `,
-          backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
+          backgroundSize: `${20 * zoom}px ${20 * zoom}px, ${20 * zoom}px ${20 * zoom}px, ${100 * zoom}px ${100 * zoom}px, ${100 * zoom}px ${100 * zoom}px`,
           backgroundPosition: `${canvasOffset.x}px ${canvasOffset.y}px`,
         }}
       />
@@ -220,14 +223,28 @@ const Canvas = () => {
       {/* Line Type Selector */}
       <LineTypeSelector currentType={lineType} onChange={setLineType} />
 
-      {/* Canvas Info */}
-      <div className="absolute bottom-4 left-4 bg-white px-3 py-2 rounded shadow-md text-xs text-gray-600 font-mono">
-        <div>Zoom: {(zoom * 100).toFixed(0)}%</div>
-        <div>
-          Pan: ({canvasOffset.x.toFixed(0)}, {canvasOffset.y.toFixed(0)})
+      {/* Enhanced Canvas Info */}
+      <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-3 rounded-xl shadow-lg border border-gray-200 text-xs text-gray-600 font-mono transition-all hover:shadow-xl">
+        <div className="flex items-center gap-2">
+          <span className="text-blue-500 font-bold">🔍</span>
+          <span className="font-semibold">Zoom:</span>
+          <span className="text-gray-900">{(zoom * 100).toFixed(0)}%</span>
         </div>
-        <div>Nodes: {nodes.length}</div>
-        <div className="text-gray-400 mt-1">Ctrl+Scroll to zoom</div>
+        <div className="flex items-center gap-2">
+          <span className="text-green-500 font-bold">🖐️</span>
+          <span className="font-semibold">Pan:</span>
+          <span className="text-gray-900">
+            ({canvasOffset.x.toFixed(0)}, {canvasOffset.y.toFixed(0)})
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-purple-500 font-bold">📦</span>
+          <span className="font-semibold">Nodes:</span>
+          <span className="text-gray-900">{nodes.length}</span>
+        </div>
+        <div className="text-gray-400 mt-2 pt-2 border-t border-gray-200">
+          <span className="text-blue-500">⌨️</span> Ctrl+Scroll to zoom
+        </div>
       </div>
 
       {/* Add Node Menu */}
@@ -238,6 +255,9 @@ const Canvas = () => {
         zoom={zoom}
         canvasOffset={canvasOffset}
       />
+
+      {/* Zoom Controls */}
+      <ZoomControls />
     </div>
   );
 };

@@ -26,12 +26,47 @@ export const localStorageMiddleware = (store) => (next) => (action) => {
   // Get the updated state after action is processed
   const state = store.getState();
 
-  // Clear existing timeout
+  // Check if this is a manual save action - bypass debounce
+  if (action.type === "workflow/manualSave") {
+    // Clear any pending timeout
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
+      saveTimeout = null;
+    }
+
+    // Save immediately
+    const saveResult = saveToLocalStorage(state.workflow);
+
+    // Log to console as required
+    if (saveResult.success) {
+      console.log(
+        "📋 Workflow JSON:",
+        JSON.stringify(
+          {
+            nodes: state.workflow.nodes,
+            connections: state.workflow.connections,
+            canvasOffset: state.workflow.canvasOffset,
+            zoom: state.workflow.zoom,
+          },
+          null,
+          2,
+        ),
+      );
+    }
+
+    // Execute any registered callbacks
+    saveCallbacks.forEach((callback) => callback(saveResult));
+    saveCallbacks = [];
+
+    return result;
+  }
+
+  // Clear existing timeout for normal actions
   if (saveTimeout) {
     clearTimeout(saveTimeout);
   }
 
-  // Debounce the save operation
+  // Debounce the save operation for normal actions
   saveTimeout = setTimeout(() => {
     const saveResult = saveToLocalStorage(state.workflow);
 
@@ -91,7 +126,7 @@ export const saveToLocalStorage = (state) => {
     if (estimatedSize > 5 * 1024 * 1024) {
       // 5MB warning threshold
       console.warn(
-        "Workflow state is large (>5MB), may exceed localStorage quota"
+        "Workflow state is large (>5MB), may exceed localStorage quota",
       );
     }
 
@@ -165,7 +200,7 @@ export const loadFromLocalStorage = () => {
     } catch (parseError) {
       console.error(
         "❌ Failed to parse saved state (corrupted data):",
-        parseError
+        parseError,
       );
       // Clear corrupted data
       localStorage.removeItem(STORAGE_KEY);

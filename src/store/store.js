@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import workflowReducer from "./workflowSlice";
 import uiReducer from "./uiSlice";
 import { localStorageMiddleware, loadState } from "./localStorageMiddleware";
+import historyMiddleware from "./historyMiddleware";
 
 // Load persisted state from localStorage
 const persistedState = loadState();
@@ -25,12 +26,14 @@ const store = configureStore({
       }
     : undefined,
 
-  // Add localStorage middleware
+  // Add middleware (history middleware must come before localStorage)
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       // Disable serializable check for now (we'll ensure our state is serializable)
       serializableCheck: false,
-    }).concat(localStorageMiddleware),
+    })
+      .concat(historyMiddleware)
+      .concat(localStorageMiddleware),
 
   // Enable Redux DevTools
   devTools: process.env.NODE_ENV !== "production",

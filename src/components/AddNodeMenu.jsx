@@ -85,21 +85,24 @@ const AddNodeMenu = ({
       type: "action",
       label: "Action",
       icon: "⚡",
-      color: "bg-blue-500 hover:bg-blue-600",
+      color:
+        "bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-blue-700",
       description: "Sequential task",
     },
     {
       type: "branch",
       label: "Branch",
       icon: "◆",
-      color: "bg-yellow-500 hover:bg-yellow-600",
+      color:
+        "bg-gradient-to-br from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 border-yellow-700",
       description: "Decision point",
     },
     {
       type: "end",
       label: "End",
       icon: "🏁",
-      color: "bg-red-500 hover:bg-red-600",
+      color:
+        "bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 border-red-700",
       description: "Workflow end",
     },
   ];
@@ -110,11 +113,11 @@ const AddNodeMenu = ({
   return (
     <div
       ref={menuRef}
-      className="fixed z-[2000] bg-white rounded-lg shadow-2xl border border-gray-200 p-2 min-w-[200px] animate-fadeIn"
+      className="fixed z-[2000] bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border-2 border-gray-300 p-3 min-w-[220px] animate-fadeIn"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        animation: "fadeIn 0.15s ease-out",
+        animation: "fadeIn 0.2s ease-out",
       }}
     >
       <style>{`
@@ -130,32 +133,44 @@ const AddNodeMenu = ({
         }
       `}</style>
 
-      <div className="text-xs font-semibold text-gray-500 px-2 py-1 mb-1">
-        Add Node {parentNode && `→ ${parentNode.label}`}
+      <div className="text-xs font-bold text-gray-600 px-2 py-1 mb-2 flex items-center gap-2 border-b border-gray-200 pb-2">
+        <span className="text-lg">➕</span>
+        Add Node{" "}
+        {parentNode && (
+          <span className="text-blue-600">→ {parentNode.label}</span>
+        )}
       </div>
 
       {isBranchParent ? (
         // Branch parent: show branch label options
-        <div className="space-y-1">
-          <div className="text-xs text-gray-400 px-2 py-1">
-            Select branch path:
+        <div className="space-y-2">
+          <div className="text-xs text-gray-500 px-2 py-1 font-semibold">
+            📍 Select branch path:
           </div>
           {["Yes", "No"].map((branchLabel) => (
             <div key={branchLabel} className="space-y-1">
-              <div className="text-xs font-medium text-gray-600 px-2 py-1 bg-gray-50 rounded">
-                {branchLabel}
+              <div
+                className={`text-xs font-bold px-2 py-1.5 rounded-lg ${
+                  branchLabel === "Yes"
+                    ? "bg-green-100 text-green-700 border border-green-300"
+                    : "bg-orange-100 text-orange-700 border border-orange-300"
+                }`}
+              >
+                {branchLabel === "Yes" ? "✓" : "✗"} {branchLabel}
               </div>
               {nodeTypes.map((nodeType) => (
                 <button
                   key={`${branchLabel}-${nodeType.type}`}
                   onClick={() => handleAddNode(nodeType.type, branchLabel)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 rounded transition-colors text-white ${nodeType.color} ml-2`}
+                  className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg transition-all duration-200 text-white shadow-md hover:shadow-lg hover:scale-105 ml-2 border ${nodeType.color}`}
                   style={{ width: "calc(100% - 8px)" }}
                 >
                   <span className="text-lg">{nodeType.icon}</span>
                   <div className="flex-1 text-left">
-                    <div className="text-sm font-medium">{nodeType.label}</div>
-                    <div className="text-xs opacity-80">
+                    <div className="text-sm font-semibold">
+                      {nodeType.label}
+                    </div>
+                    <div className="text-xs opacity-90">
                       {nodeType.description}
                     </div>
                   </div>
@@ -166,17 +181,17 @@ const AddNodeMenu = ({
         </div>
       ) : (
         // Regular parent: show node type options
-        <div className="space-y-1">
+        <div className="space-y-2">
           {nodeTypes.map((nodeType) => (
             <button
               key={nodeType.type}
               onClick={() => handleAddNode(nodeType.type)}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded transition-colors text-white ${nodeType.color}`}
+              className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg transition-all duration-200 text-white shadow-md hover:shadow-lg hover:scale-105 border ${nodeType.color}`}
             >
               <span className="text-lg">{nodeType.icon}</span>
               <div className="flex-1 text-left">
-                <div className="text-sm font-medium">{nodeType.label}</div>
-                <div className="text-xs opacity-80">{nodeType.description}</div>
+                <div className="text-sm font-semibold">{nodeType.label}</div>
+                <div className="text-xs opacity-90">{nodeType.description}</div>
               </div>
             </button>
           ))}

@@ -261,14 +261,14 @@ const BaseNode = ({
     );
   };
 
-  // Color variants
+  // Enhanced color variants with gradients and better shadows
   const colorClasses = {
-    blue: "bg-blue-500 border-blue-600",
-    green: "bg-green-500 border-green-600",
-    yellow: "bg-yellow-500 border-yellow-600",
-    red: "bg-red-500 border-red-600",
-    purple: "bg-purple-500 border-purple-600",
-    gray: "bg-gray-500 border-gray-600",
+    blue: "bg-gradient-to-br from-blue-400 to-blue-600 border-blue-700",
+    green: "bg-gradient-to-br from-green-400 to-green-600 border-green-700",
+    yellow: "bg-gradient-to-br from-yellow-400 to-yellow-600 border-yellow-700",
+    red: "bg-gradient-to-br from-red-400 to-red-600 border-red-700",
+    purple: "bg-gradient-to-br from-purple-400 to-purple-600 border-purple-700",
+    gray: "bg-gradient-to-br from-gray-400 to-gray-600 border-gray-700",
   };
 
   return (
@@ -277,26 +277,28 @@ const BaseNode = ({
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
       className={`
-        w-36 min-h-[80px] rounded-lg shadow-lg group
-        ${isSelected ? "ring-4 ring-blue-400" : ""}
-        ${isDragging ? "shadow-2xl opacity-90" : ""}
-        ${isEditing ? "ring-4 ring-yellow-400 shadow-2xl" : ""}
+        w-36 min-h-[80px] rounded-xl group
+        ${isSelected ? "ring-4 ring-blue-500 ring-offset-2 shadow-2xl" : "shadow-lg"}
+        ${isDragging ? "shadow-2xl opacity-90 scale-105" : ""}
+        ${isEditing ? "ring-4 ring-yellow-500 ring-offset-2 shadow-2xl" : ""}
+        ${!isDragging && !isSelected ? "hover:shadow-xl" : ""}
         ${className}
-        transition-all duration-200
+        transition-all duration-200 ease-in-out
       `}
     >
       {/* Input Connection Point */}
       {connectionPoints.input && nodeId !== "start-node" && (
-        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-5 h-5 bg-blue-400 rounded-full border-2 border-white shadow-md" />
+        <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-5 h-5 bg-gradient-to-br from-blue-300 to-blue-500 rounded-full border-2 border-white shadow-md hover:scale-125 hover:shadow-lg transition-all duration-200" />
       )}
 
       {/* Node Content */}
       <div
         className={`
-        w-full h-full rounded-lg border-2 
+        w-full h-full rounded-xl border-3 shadow-inner
         ${colorClasses[color] || colorClasses.blue}
         text-white p-3 flex flex-col items-center justify-center
         ${!isStartNode && !isEditing ? "cursor-text" : ""}
+        backdrop-blur-sm
       `}
         title={!isStartNode && !isEditing ? "Double-click to edit" : ""}
       >
@@ -338,7 +340,7 @@ const BaseNode = ({
         {!isStartNode && (
           <button
             onClick={handleDelete}
-            className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full hover:bg-red-600 flex items-center justify-center text-xs font-bold shadow-lg transition-all opacity-0 group-hover:opacity-100 hover:scale-110"
+            className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-full hover:from-red-600 hover:to-red-700 flex items-center justify-center text-xs font-bold shadow-lg transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-125 hover:rotate-90 border-2 border-white"
             title="Delete node (Del)"
           >
             ×
@@ -350,11 +352,11 @@ const BaseNode = ({
       {connectionPoints.output && node.type !== "end" && (
         <div
           onClick={handleAddNodeClick}
-          className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-5 h-5 bg-green-500 rounded-full border-2 border-white cursor-pointer hover:bg-blue-500 hover:scale-125 transition-all shadow-md group"
+          className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-5 h-5 bg-gradient-to-br from-green-400 to-green-600 rounded-full border-2 border-white cursor-pointer hover:from-blue-400 hover:to-blue-600 hover:scale-125 hover:shadow-lg hover:border-blue-200 transition-all duration-200 shadow-md group animate-pulse-subtle"
           title="Click to add node"
         >
-          <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-            Add Node
+          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+            <div className="font-semibold">➕ Add Node</div>
           </div>
         </div>
       )}
@@ -366,11 +368,11 @@ const BaseNode = ({
             <div
               key={index}
               onClick={handleAddNodeClick}
-              className="w-5 h-5 bg-green-500 rounded-full border-2 border-white cursor-pointer hover:bg-blue-500 hover:scale-125 transition-all shadow-md group relative"
+              className="w-5 h-5 bg-gradient-to-br from-green-400 to-green-600 rounded-full border-2 border-white cursor-pointer hover:from-blue-400 hover:to-blue-600 hover:scale-125 hover:shadow-lg hover:border-blue-200 transition-all duration-200 shadow-md group relative animate-pulse-subtle"
               title={`Click to add node (${output.label})`}
             >
-              <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                Add ({output.label})
+              <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-3 py-1.5 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap pointer-events-none shadow-lg z-50">
+                <div className="font-semibold">➕ Add ({output.label})</div>
               </div>
             </div>
           ))}

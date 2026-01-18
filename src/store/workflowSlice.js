@@ -54,12 +54,33 @@ const initialState = {
   },
 };
 
+const HISTORY_LIMIT = 50;
+
+/**
+ * Helper function to add current state to history
+ * Called by trackable actions before making changes
+ */
+const addToHistory = (state, action) => {
+  // Only add to history if action has trackHistory meta flag
+  if (!action.meta?.trackHistory) return;
+
+  const snapshot = action.meta.snapshot;
+
+  // Add snapshot to past, limit to HISTORY_LIMIT
+  const newPast = [...state.history.past, snapshot].slice(-HISTORY_LIMIT);
+
+  state.history.past = newPast;
+  state.history.future = []; // Clear future when new action is performed
+};
+
 const workflowSlice = createSlice({
   name: "workflow",
   initialState,
   reducers: {
     // Add a new node
     addNode: (state, action) => {
+      addToHistory(state, action);
+
       const { type, label, position, parentNodeId } = action.payload;
       const newNodeId = uuidv4();
 
@@ -110,14 +131,16 @@ const workflowSlice = createSlice({
       const nodeToDelete = state.nodes[nodeId];
       if (!nodeToDelete) return;
 
+      addToHistory(state, action);
+
       // Find all connections where this node is the source
       const outgoingConnections = state.connections.filter(
-        (conn) => conn.fromNodeId === nodeId
+        (conn) => conn.fromNodeId === nodeId,
       );
 
       // Find all connections where this node is the target
       const incomingConnections = state.connections.filter(
-        (conn) => conn.toNodeId === nodeId
+        (conn) => conn.toNodeId === nodeId,
       );
 
       // Reconnect: for each parent, connect to all children of deleted node
@@ -126,7 +149,7 @@ const workflowSlice = createSlice({
         if (parentNode) {
           // Remove connection to deleted node
           parentNode.connections = parentNode.connections.filter(
-            (id) => id !== nodeId
+            (id) => id !== nodeId,
           );
 
           // Add connections to children of deleted node
@@ -149,7 +172,7 @@ const workflowSlice = createSlice({
 
       // Remove all connections involving this node
       state.connections = state.connections.filter(
-        (conn) => conn.fromNodeId !== nodeId && conn.toNodeId !== nodeId
+        (conn) => conn.fromNodeId !== nodeId && conn.toNodeId !== nodeId,
       );
 
       // Remove node from all parent connections arrays
@@ -173,6 +196,7 @@ const workflowSlice = createSlice({
     updateNodeLabel: (state, action) => {
       const { nodeId, label } = action.payload;
       if (state.nodes[nodeId]) {
+        addToHistory(state, action);
         state.nodes[nodeId].label = label;
       }
     },
@@ -181,6 +205,7 @@ const workflowSlice = createSlice({
     updateNode: (state, action) => {
       const { nodeId, updates } = action.payload;
       if (state.nodes[nodeId]) {
+        addToHistory(state, action);
         state.nodes[nodeId] = {
           ...state.nodes[nodeId],
           ...updates,
@@ -192,6 +217,7 @@ const workflowSlice = createSlice({
     updateNodePosition: (state, action) => {
       const { nodeId, position } = action.payload;
       if (state.nodes[nodeId]) {
+        addToHistory(state, action);
         state.nodes[nodeId].position = position;
       }
     },
@@ -212,7 +238,7 @@ const workflowSlice = createSlice({
 
       // Check if connection already exists
       const exists = state.connections.some(
-        (conn) => conn.fromNodeId === fromNodeId && conn.toNodeId === toNodeId
+        (conn) => conn.fromNodeId === fromNodeId && conn.toNodeId === toNodeId,
       );
 
       if (!exists) {
@@ -242,7 +268,7 @@ const workflowSlice = createSlice({
     deleteConnection: (state, action) => {
       const connectionId = action.payload;
       const connection = state.connections.find(
-        (conn) => conn.id === connectionId
+        (conn) => conn.id === connectionId,
       );
 
       if (connection) {
@@ -250,7 +276,7 @@ const workflowSlice = createSlice({
         const parentNode = state.nodes[connection.fromNodeId];
         if (parentNode) {
           parentNode.connections = parentNode.connections.filter(
-            (id) => id !== connection.toNodeId
+            (id) => id !== connection.toNodeId,
           );
 
           // Remove branch label if exists
@@ -264,7 +290,7 @@ const workflowSlice = createSlice({
 
         // Remove connection
         state.connections = state.connections.filter(
-          (conn) => conn.id !== connectionId
+          (conn) => conn.id !== connectionId,
         );
       }
     },
@@ -273,14 +299,14 @@ const workflowSlice = createSlice({
     removeConnection: (state, action) => {
       const connectionId = action.payload;
       const connection = state.connections.find(
-        (conn) => conn.id === connectionId
+        (conn) => conn.id === connectionId,
       );
 
       if (connection) {
         const parentNode = state.nodes[connection.fromNodeId];
         if (parentNode) {
           parentNode.connections = parentNode.connections.filter(
-            (id) => id !== connection.toNodeId
+            (id) => id !== connection.toNodeId,
           );
 
           if (
@@ -292,7 +318,7 @@ const workflowSlice = createSlice({
         }
 
         state.connections = state.connections.filter(
-          (conn) => conn.id !== connectionId
+          (conn) => conn.id !== connectionId,
         );
       }
     },
@@ -301,7 +327,7 @@ const workflowSlice = createSlice({
     updateConnection: (state, action) => {
       const { connectionId, updates } = action.payload;
       const connection = state.connections.find(
-        (conn) => conn.id === connectionId
+        (conn) => conn.id === connectionId,
       );
 
       if (connection) {
@@ -351,19 +377,87 @@ const workflowSlice = createSlice({
       state.zoom = 1;
     },
 
-    // Undo functionality (will be implemented later)
+    // Undo functionality
     undo: (state) => {
-      // TODO: Implement undo logic using history
+      if (state.history.past.length === 0) return;
+
+      // Get the most recent past state
+      const previous = state.history.past[state.history.past.length - 1];
+      const newPast = state.history.past.slice(0, -1);
+
+      // Save current state to future
+      const { history, ...currentState } = state;
+      const currentSnapshot = JSON.parse(JSON.stringify(currentState));
+
+      // Restore previous state while preserving history
+      return {
+        ...previous,
+        history: {
+          past: newPast,
+          future: [currentSnapshot, ...state.history.future],
+        },
+      };
     },
 
-    // Redo functionality (will be implemented later)
+    // Redo functionality
     redo: (state) => {
-      // TODO: Implement redo logic using history
+      if (state.history.future.length === 0) return;
+
+      // Get the next future state
+      const next = state.history.future[0];
+      const newFuture = state.history.future.slice(1);
+
+      // Save current state to past
+      const { history, ...currentState } = state;
+      const currentSnapshot = JSON.parse(JSON.stringify(currentState));
+
+      // Restore next state while preserving history
+      return {
+        ...next,
+        history: {
+          past: [...state.history.past, currentSnapshot],
+          future: newFuture,
+        },
+      };
     },
 
     // Load workflow state (for localStorage loading)
     loadWorkflow: (state, action) => {
       return { ...initialState, ...action.payload };
+    },
+
+    // Manual save action - triggers immediate save
+    manualSave: (state, action) => {
+      // This action does nothing to state but triggers middleware
+      // The action type is used by middleware to bypass debounce
+      console.log("💾 Manual save triggered");
+    },
+
+    // Import/Load workflow from external source
+    importWorkflow: (state, action) => {
+      const { nodes, connections, canvasOffset, zoom, merge } = action.payload;
+
+      if (merge) {
+        // Merge mode: add imported nodes to existing workflow
+        Object.assign(state.nodes, nodes);
+        state.connections = [...state.connections, ...connections];
+      } else {
+        // Replace mode: completely replace current workflow
+        state.nodes = nodes;
+        state.connections = connections;
+        state.canvasOffset = canvasOffset || { x: 0, y: 0 };
+        state.zoom = zoom || 1;
+      }
+
+      // Clear selection and history on import
+      state.selectedNodeId = null;
+      state.history = { past: [], future: [] };
+
+      console.log("📥 Workflow imported", {
+        nodeCount: Object.keys(nodes).length,
+        connectionCount: connections.length,
+        mode: merge ? "merge" : "replace",
+      });
     },
 
     // Reset workflow to initial state
@@ -393,6 +487,8 @@ export const {
   undo,
   redo,
   loadWorkflow,
+  manualSave,
+  importWorkflow,
   resetWorkflow,
 } = workflowSlice.actions;
 
